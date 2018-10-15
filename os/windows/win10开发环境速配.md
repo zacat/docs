@@ -34,12 +34,18 @@
 
   ```bash
   # 更新
+  sudo apt-get update
   sudo apt upgrade
   # 语言
-  apt-get install language-pack-zh-hans
+  sudo apt-get install language-pack-zh-hans
   sudo dpkg-reconfigure locales
-  # 字体包
+  
+  # 字体配置器
+  sudo apt install fontconfig
+  
+  # 字体包 (apt-get update)
   sudo apt install fonts-wqy-*
+  # 可选
   sudo apt install ttf-wqy-*
   sudo apt install xfonts-wqy
   # for 1804-LTS, 包名
