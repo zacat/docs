@@ -73,16 +73,51 @@ sudo apt-get install composer
 
 * 网址： https://packagist.org/packages/submit
 
-* 输入 github 项目地址如： https://github.com/foo/bar.git
+* 输入 `github` 项目地址如： https://github.com/foo/bar.git
 
-* 示例
+* `git`项目示例
 
-  ```
+  ```bash
+  # 登录 github 创建一个仓库. 或其它支持git代码管理的网站上。
+  git clone https://github.com/foo/bar.git
+  cd foo/bar
+  # 建立composer.json
+  composer init
+  # name 即是项目名称， 如 "ijiabao/foo-bar"
   
+  # 添加项目文件
+  git add some/files
+  git add other/files
+  
+  # 提交修改
+  git commit -m "init files"
+  # 推送 master(主线、开发版dev)
+  git push origin master
+  
+  # 发行v1.0版 (stable版)
+  git tag -a v1.0 -m "stable v1.0"
+  # 推送 stable v1.0
+  git push origin v1.0
   ```
 
 * 手动更新
 
   ```
   curl -XPOST -H'content-type:application/json' 'https://packagist.org/api/update-package?username=ijiabao&apiToken=wXAmA7oZTFLH6RFAh07b' -d'{"repository":{"url":"https://packagist.org/packages/ijiabao/laravel-dbdump"}}'
+  ```
+
+
+
+## 本地包开发
+
+* 本地path，软链接
+
+  ```json
+  // composer.json, ijiabao/dbdump为相对路径
+  "repositories": {
+      "ijiabao/laravel-dbdump": {
+      "type": "path",
+      "url": "ijiabao/dbdump"
+      }
+  }
   ```
