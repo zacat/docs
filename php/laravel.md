@@ -46,11 +46,16 @@ subl .env
 ## 修改User Model 目录
 
 ```php
+// 修改之前可"Find Usages" 查找引用
 // app/User.php => app/Models/User.php
 namespace App\Models;
 
 // config/auth.php
 'providers' => ['users'=> ['model'=> App\Models\User::class]];
+
+// config/services.php
+'model' => App\Models\User::class,
+
 
 // app/Http/Controllers/Auth/RegisterController.php
 use App\Models\User;

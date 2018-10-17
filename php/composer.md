@@ -100,6 +100,44 @@ sudo apt-get install composer
   git push origin v1.0
   ```
 
+* 自动更新(for github)
+
+  > github的service服务已停止, 使用新的webhook来实现自动推送更新
+  >
+  > 参见: https://packagist.org/about#how-to-update-packages
+
+  * 退出登录(github, packagist)
+
+  * 登录packagist, 使用 github OAuth登录(第三方登录), 并开启所有权限
+
+  * 进入profile页 https://packagist.org/profile/
+
+  * 页面有显示 GitHub Hook Sync 和时间, 表示成功,以后github更新时,会自动推送到packagist.
+
+    另可点击 "retry hook sync" 对你的github进行同步挂钩 (为github项目添加webhook). 
+
+    ```
+    GitHub Hook Sync
+    
+    Completed at 2018-10-17 02:51:29 UTC, retry hook sync.
+    0 hooks setup/updated
+    0 hooks already setup and left unchanged
+    ```
+
+  * 她的原理获得权限,在你的github项目里添加一个 webhook,  当PUSH代码时告之`packagist`进行更新
+
+    可查看你的github项目=> settings => Webhooks , 如果有packagist.org/api/github, 则表示成功.
+
+    ```
+    Webhooks
+    
+    Webhooks allow external services to be notified when certain events happen. When the specified events happen, we’ll send a POST request to each of the URLs you provide. Learn more in our Webhooks Guide.
+    
+    https://packagist.org/api/github (push)
+    ```
+
+  * 笔者写了个webhook demo, 能实现同样效果, 参见: https:github.com/ijiabao/
+
 * 手动更新
 
   ```
