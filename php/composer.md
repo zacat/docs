@@ -148,13 +148,55 @@ sudo apt-get install composer
 
 ## 本地包开发
 
-* 本地path，软链接
+* 本地path，建议此法 (新版composer才支持)
+
+  > 可将包目录放在本地, 假设 ./ijiabao/dbdump, 即时修改即时生效. 必须 require dev-master
+  >
+  > 使用 `path` 指定目录, 则会在 `vendor` 创建一个软链接, 无须`composer update`
 
   ```json
-  // composer.json, ijiabao/dbdump为相对路径
+  "require": {
+      "ijiabao/laravel-dbdump": "@dev"
+  },
   "repositories": {
       "ijiabao/laravel-dbdump": {
       "type": "path",
+      "url": "ijiabao/dbdump"
+      }
+  }
+  ```
+
+* 远程git,  直接拉取 https://github.com 对应的包内容, 系统须预安装git软件
+
+  > 此法绕过 packagist 而直接使用github仓库,为测试节省时间.
+  >
+  > 包有变更时,须使用 `composer update` 更新
+
+  ```json
+  "require": {
+      "ijiabao/laravel-dbdump": "@dev"
+  },
+  "repositories": {
+      "ijiabao/laravel-dbdump": {
+      "type": "git",
+      "url": "https://github.com/ijiabao/laravel-dbdump"
+      }
+  }
+  ```
+
+* 本地git, 用于开发测试与发布. 此法意义不大.
+
+  > 此法会在vendor添加一个目录拷贝, 包有变更时,使用`composer update`才能更新
+  >
+  > 先`git clone` 拉取包内容, 或 `git init` 生成一个本地包, 假设目录在./ijiabao/laravel-dbdump
+
+  ```json
+  "require": {
+      "ijiabao/laravel-dbdump": "@dev"
+  },
+  "repositories": {
+      "ijiabao/laravel-dbdump": {
+      "type": "git",
       "url": "ijiabao/dbdump"
       }
   }

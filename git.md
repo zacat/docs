@@ -132,7 +132,7 @@ git tag -d v1.0
 # 推送标签
 git push origin v1.0
 
-# 删除远程标签
+# 删除远程标签, -d , -delete
 git push origin --delete v1.0
 # or
 git push origin :refs/tags/v1.0
