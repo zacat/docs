@@ -173,6 +173,8 @@ composer require intervention/image
 
   ```bash
   php artisan ide-helper:generate
+  # model, nowrite, reset
+  php artisan ide-helper:model -RN
   ```
 
 
