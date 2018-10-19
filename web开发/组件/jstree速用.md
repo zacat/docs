@@ -1,20 +1,26 @@
 # JsTree 组件速用
 
 * 官网 https://www.jstree.com/
-* 好记性不如烂笔头,官方的文档组织性真的差
+* 
 
-
-
-### 快速前后端交互
+### 快速使用
 
 * 前端
 
-  ```js
-  $('#tree').jstree({
-      core: {
-          data: { url: function(node){ return '/cat/jstree?id=' + node.id; } }
-      }
-  });
+  ```html
+  
+  <link rel="stylesheet" href="jstree/dist/themes/default/style.min.css" />
+  <script type="text/javascript" src="jstree/dist/jstree.min.js"></script>
+  
+  <div id="tree"></div>
+  <script type="text/javascript">
+      $('#tree').jstree({
+          core: {
+              data: { url: function(node){ return '/cat/jstree?id=' + node.id; } }
+          },
+          plugins: ['contextmenu', 'state', 'types', 'wholerow', 'changed']
+  	});
+  </script>
   ```
 
 
@@ -47,10 +53,11 @@
 
 
 
-
 ### 常用交互及事件处理
 
-* 示例中的事件处理, 是先前端Node的渲染, 完毕再异步请求/同步后端, 如果出错, 会重新刷新树
+* 示例中的事件处理, 是执行命令后，修改节点对象属性 => 更新渲染 `Dom` 节点 =>渲染成功后触发事件，在事件中再异步请求/同步后端, 如果出错, 会重新刷新整个树。
+* 例如新建节点：执行菜单"新建"命令后，内部执行create_node()，检查`core.check_callback`，如果返回真，会分配一个临时 id, text, 并在树视图中渲染，成功后会触发 `create_node.jstree`事件, 在事件处理函数里，请求服务器进行数据表的添加， 添加成功时返回行数据的ID值，并修改视图节点的ID与之对应
+* 个人不太喜欢这套流程，更倾向于先后端再更新视图的流程。
 
 ```js
 $('#tree')
@@ -115,6 +122,7 @@ $('#tree')
 		}
 	});
 });
+
 ```
 
 
@@ -123,7 +131,9 @@ $('#tree')
 
 * 对象型/递归型,全部数据就一个对象
 
-  > 不要为节点设置 parent属性,会减慢速度
+  > 此格式禁止设置 `parent`属性,会减慢速度或者出错
+  >
+  > 必要参数：`text` , 为显示的文本
 
   ```js
   // 此为一个节点
@@ -141,13 +151,13 @@ $('#tree')
     a_attr      : {}  // 在节点dom上添加 a_attr=""
   }
   $('#tree').jstree({
-      core: data: {node}
+      core: data: { /* node*/ }
   })
   ```
 
 * 数组型,顺序表
 
-  > 这个慢, 会根据id,parent自动生成树, 每个节点必须指定id,parent
+  > 这个慢, 会根据 id,parent 自动生成树, 每个节点必须指定 id,parent
 
   ```js
   // 节点示例
@@ -169,6 +179,14 @@ $('#tree')
       core: {data: [{}, {}, {}]}
   });
   
+  ```
+
+* 节点还可以为纯文本
+
+  ```js
+  $('#tree').jstree({
+      core: {data: ['node1', 'node2', {text:'node3', children: ['node4', 'node5']}]};
+  });
   ```
 
 
@@ -241,9 +259,190 @@ $('#tree')
   ```
 
 
-### 节点类型及图标
 
-* 直接写在jsonData里,并不是太好处理, 前端不好个性化, 可能要把 css class写入数据库, 当需求变更时, 也需要频繁修改后端.
+### 获取实例, 调用API
+
+- API 参考 https://www.jstree.com/api
+
+- 示例
+
+  ```javascript
+  // 初始化
+  $('#tree').jstree({
+      '...': '...'
+  });
+  
+  // 获取已初始化的实例
+  var inst = $('#tree').jstree();
+  
+  // 说明
+  $('#tree2').jstree(); // get an existing instance (or create an instance)
+  $('#tree2').jstree(true); // get an existing instance (will not create new instance)
+  
+  // 根据dom获取对应的实例, 参数可以是dom, css/js selector, jquery obj
+  var inst = $.jstree.reference(name);
+  // 如:
+  $.jstree.reference('tree');
+  $.jstree.reference('#tree');
+  $.jstree.reference($('#tree'));
+  $.jstree.reference(document.getElementByID('tree'));
+  
+  
+  // 调用api
+  inst.refresh();
+  // 或
+  $('#tree1').jstree('open_node', '#branch_1'); // call a method on an existing instance, passing additional arguments
+  
+  // 刷新
+  inst.refresh();
+  inst.refresh_node(obj);	// 重新加载obj的子级
+  
+  // 选中某个节点
+  // 参数可为 id, node, 数组, 参数二设置true表示不触发changed事件，参数三设置true表示不展开子级
+  inst.select_node(obj [, supress_event, prevent_open]); 
+  // 去除选中
+  inst.deselect_node(obj, [, supress_event]);
+  // 全选/取消
+  inst.select_all();
+  inst.deselect_all();
+  ```
+
+- 默认菜单增删改的API示例, 可以从中得到一些启发
+
+  ```js
+  // 默认菜单命令的处理流程：
+  default_actions = function(data){
+      var inst = $.jstree.reference(data.reference),
+          obj = inst.get_node(data.reference);	// obj为菜单关联的节点(菜单在此处弹出)
+      
+      // create, 创建节点，父节点为obj, 在尾部添加, 成功后，回调处理 new_node
+      inst.create_node(obj, {}, "last", function(new_node){
+          inst.edit(new_node);
+      });
+      // rename, 修改名称
+      inst.edit(obj);
+      
+      // remove, 删除
+      if(inst.is_selected(obj)){
+          inst.delete_node(inst.get_selected());	// 可能有多选，同时删除
+      } else{
+      	inst.delete_node(obj);    
+      }
+      
+      // cut, 剪切
+      if(inst.is_selected(obj)){
+          inst.cut(inst.get_top_selected());
+      } else{
+          inst.cut(obj);
+      }
+      
+      // copy, 复制
+      if(inst.is_selected(obj)) {
+          inst.copy(inst.get_top_selected());
+      }
+      else {
+          inst.copy(obj);
+      }
+      
+      // paste, 粘贴
+      inst.paste(obj);
+      
+  }
+  ```
+
+
+
+### 动作、事件拦截
+
+* 设置 core.check_callback 为闭包，可以拦截动作，他是最底层API函数的钩子。
+
+* 动作拦截仅适用于非法操作，或不合逻辑的操作，他并不提供异步回调功能（无法实现“挂起，异步，继续"的操作）
+
+* 不可永久拦截某个动作。例如拦截了"create_node"动作，将导致`create_node()`函数失效，无法在视图里插入新节点，除非对参数进行二次处理。 以下为示例
+
+  ```js
+  $('#jstree').jstree({
+      core: {
+          check_callback: function(chk, obj, par, pos, more){
+              // 在拖动，移动节点时
+              if(chk=='move_node' && more.core){
+                  return confirm('确认移动?');	// 警告并继续
+              }
+              
+              // 创建节点
+              if(chk=='create_node'){
+                  // 打开一个弹层，搞个表单，提交服务器成功后，返回新的Node数据，并在视图插入新的节点
+                  showDialog('#form', {
+                      success: function(newNode){	// 提交成功
+                          // 在视图插入新的节点，调用create_node()才能实现，但会再次触发 check_callback, 死循环
+                          // instance.create_node(par, newNode, pos);
+  						instance.refresh();	// 只能刷新整个树, 或者调用create_node时指定特殊参数以区别
+                      }
+                  });
+                  
+                  // 返回假，意味着永久拦截 create_node()函数， 将无法在树视图里插入新节点。
+                  return false;	
+              }
+              return true;
+          }
+      }
+  });
+  ```
+
+
+
+### Node 对象及原始数据
+
+```js
+// 事件中获取原始数据
+$('#tree').on('changed.jstree', function(e, data){
+    console.log(data);
+    var inst = data.instance;	// jstree实例, 可调用其API
+	var node = data.node;			// node对象
+    var original = node.original;	// 原始数据,服务器返回的数据
+    
+    var parents = node.parents;	 // ['1', '0', '#']
+    var children = node.children; // ['3', '4', '5']
+});
+```
+
+
+
+### 插件说明
+
+```js
+$('#dom').jstree({
+    plugins:[
+        "checkbox",		// 复选样式
+        "contextmenu",	// 右键菜单
+        "dnd",		// 拖动
+        "massload",	// 懒加载
+        "search",	// 搜索，不常用
+        "sort",		// 排序, 不常用
+        "state",	// 状态本地存取
+        "types",	// 类型
+        "unique",	// 唯一值，不常用
+        "wholerow",	// 整行样式
+        "changed",	// 新型changed事件,获取更详细的select,deselect数组
+        "conditionalselect"	// 条件选择，不常用
+    ],
+    // 每节点被选择时，进入此函数进行条件判断,返回假进行阻拦。
+    "conditionalselect": function(node, event){
+        return false;
+    }
+})
+    .on('changed.jstree', function(e, data){
+    	// 使用 changed plugin时, 多了一个data.changed属性，可判断哪些被选择，哪些被取消
+    	// console.log(data.changed);  // {selected: ["3", "2"], deselected: []}
+	});
+
+```
+
+
+
+### Types 节点类型及图标、主题定制
+
+* 图标直接从后台`jsonData`里获取,并不是太好处理, 前端不好个性化, 可能要把 `css class`写入数据库, 当需求变更时, 也需要频繁修改后端：
 
   ```php
   // some ajax request
@@ -252,7 +451,7 @@ $('#tree')
   echo json_encode($data);
   ```
 
-* 使用`types plugin`, 根据节点的`type`属性, 来定义相关的前端显示.
+* 使用`types plugin`, 根据节点的`type`属性, 来定义相关的前端主题.
 
   例如我们做`CMS`系统时, 有栏目树, 栏目类型有 '单页', '目录', '分类', '文章列表', '纯链接', 等等, 只需在数据库里存取'type'类型, 在前端根据类型来自定义图标,或者切换主题风格.
 
@@ -274,6 +473,7 @@ $('#tree')
 
   ```js
   // 前端, 根据节点的 'type' 字段来显示个性化图标与样式
+  // 
   $('#tree').jstree({
       core: { "..." : "..." },
       types: {
@@ -286,14 +486,15 @@ $('#tree')
   });
   
   // 根据 types li-attr / a-attr 设置节点样式
-  // .jstree li.jstree-node[li-attr="type-file"] { color:#f22; }
+  // .jstree-node[li-attr="type-file"] { color:#f22; }
   
   ```
 
 
-### 右键菜单
 
-* 快速使用, 注意代码里`check_callback`参数的作用, 否则默认的菜单动作不会执行
+### Contextmenu 右键菜单
+
+* 注意代码里`core.check_callback`参数的作用, 否则默认的菜单动作不会执行
 
   ```js
   // core.check_callback 必须 为 true, 或者闭包, 内部根据返回值来判断是否执行菜单动作
@@ -380,53 +581,141 @@ $('#tree')
 
 
 
-### 获取实例, 调用API
+### State 状态本地存取与恢复(blob)
 
-* API 参考 https://www.jstree.com/api
+* 页面来回跳转，或全页刷新时可用到，自动保存和恢复已展开、收缩的状态
+* 如果是Ajax异步框架，重载时会依次请求后台，展开树
 
 ```js
-// 初始化
+// 配置
 $('#tree').jstree({
-    '...': '...'
+    core: { /*...*/ },
+    state: {	// 不设置，或默认值即可
+        key: 'jstree', // defaults
+        ttl: false, // 或毫秒数, false表示不过期
+    },
+    plugins: ['state']
 });
 
-// 获取实例
+// api
 var inst = $('#tree').jstree();
-
-// 调用api
-inst.refresh();
-// 或
-$('#tree').jstree('refresh');
-
-
-// 其它方法:
-// $.fn.jstree
-$('#tree1').jstree(); // creates an instance
-$('#tree2').jstree({ plugins : [] }); // create an instance with some options
-$('#tree1').jstree('open_node', '#branch_1'); // call a method on an existing instance, passing additional arguments
-$('#tree2').jstree(); // get an existing instance (or create an instance)
-$('#tree2').jstree(true); // get an existing instance (will not create new instance)
-$('#branch_1').jstree().select_node('#branch_1'); // get an instance (using a nested element and call a method)
-
-// 根据dom获取实例
-$.jstree.reference('tree');
-$.jstree.reference('#tree');
-$.jstree.reference($('#tree'));
-$.jstree.reference(document.getElementByID('tree'));
-$.jstree.reference('branch');
-$.jstree.reference('#branch');
-$.jstree.reference($('#branch'));
-$.jstree.reference(document.getElementByID('branch'));
+inst.save_state();
+inst.restore_state();
+inst.clear_state();
 ```
 
 
 
-### 原始数据
+### Massload 懒加载
+
+* 一次性请求多个ID时，使用懒加载，用于优化查询
 
 ```js
-// 事件中获取原始数据
+$('#tree').jstree({
+    "core" : {
+        "data" : { /*.. AJAX config ..*/ }
+    },
+    "massload" : {
+        "url" : "/some/path",
+        "data" : function (nodes) {
+            return { "ids" : nodes.join(",") };
+        }
+    }
+    "plugins" : [ "massload", "state" ]    
+});
+// 服务器返回格式如下：
+jsonData = {
+    "id1": [ {text:'child1'}, {text: 'child2'} ],
+    "id2": [ {text: 'child for id2'} ]
+}
+```
+
+
+
+### Checkbox 复选
+
+```js
+$('#tree').jstree({
+    "core" : { /* */},
+    checkbox: {
+        keep_selected_style: false,
+        three_state: true,	// 选中父节点时，会自动全选子节点，如果不希望，置为false
+        whole_node: true, // 整行点击有效
+        tie_selection: true, // 默认，设为false测试有啥改变？
+        cascade: true, 	// 此设置控制如何应用级联和未确定的节点, 可设 up, down, undetermined
+    },
+    "plugins" : ["checkbox"]    
+}); 
+
+// 常用 api
+var inst = $('#tree').jstree();
+inst.check_node(obj);	// node|id|array
+inst.uncheck_node(obj);
+inst.check_all();
+inst.uncheck_all();
+inst.is_checked(obj);
 
 ```
+
+
+
+### Changed 插件
+
+```js
+$("#tree").on("changed.jstree", function (e, data) {
+    // 使用 changed plugin时, 多了一个data.changed属性，可判断哪些被选择，哪些被取消
+    console.log(data.changed);  // {selected: ["3", "2"], deselected: []}
+});
+```
+
+
+
+### Conditionalselect 插件
+
+```js
+$("#tree").jstree({
+    "conditionalselect" : function (node, event) {
+        // 判断是否需要拦截 select/active 动作
+        return false;
+    },
+    "plugins" : [ "conditionalselect" ]
+});
+```
+
+
+
+### Drag & Drop 拖拽 插件
+
+```js
+// 一切默认即可
+$("#tree").jstree({
+    dnd : {
+        use_html5: true,	// 如果支持html5
+    },
+    "plugins" : [ "dnd" ]
+});
+```
+
+
+
+### Search 插件
+
+```js
+// search 主要提供高亮显示
+// 如果需要ajax, 返回的数据在视图中必须可连续展开（意味着要加载父级列表)
+$('#tree').jstree({
+    search: {
+        ajax: {}, // 同jquery ajax设置
+    },
+    plugins: ['search']
+});
+
+// api
+var inst = $('#tree').jstree();
+inst.search('test');
+```
+
+
 
 
 
@@ -453,6 +742,7 @@ $.jstree.reference(document.getElementByID('branch'));
 * 选中,焦点变化
 
   ```js
+  // 实测 changed 事件与click事件没啥区别， 连续点击同一节点，会连续触发此事件
   .on('changed.jstree', function (e, data) {
       if(data && data.selected && data.selected.length) {
           
