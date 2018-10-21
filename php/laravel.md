@@ -232,3 +232,24 @@ class DbDumpCommand extends Command{
 }
 ```
 
+### 前后端
+
+```html
+<meta name="csrf-token" content="{{ csrf_token() }}">
+<script>
+    WINDOW.CSRF_TOKEN = $('meta[name="csrf-token"]').attr('content');
+    $.ajaxSetup({
+        
+    })
+</script>
+```
+
+
+
+```js
+
+
+```
+
+
+
