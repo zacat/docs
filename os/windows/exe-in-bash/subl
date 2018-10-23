@@ -1,0 +1,3 @@
+#!/bin/bash
+# 不要在行尾、文件尾添加任何空字符、换行符
+/mnt/c/Program\ Files/Sublime\ Text\ 3/subl.exe `winpath $1`

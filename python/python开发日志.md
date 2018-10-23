@@ -30,6 +30,37 @@
 
 
 
+### 常用
+
+* 判断版本号
+
+  ```python
+  import os,sys,ctypes
+  
+  if sys.version_info < (3, 4):
+      ctypes.windll.user32.MessageBoxW(0, "python版本必须高于3.4.4", "提示", 0)
+  	exit(0)
+  ```
+
+* Win下判断并以管理员身份运行
+
+  ```python
+  import os,sys,ctypes
+  
+  if __name__ == '__main__':
+      if not ctypes.windll.shell32.IsUserAnAdmin():
+          ctypes.windll.shell32.ShellExecuteW(None, "runas", sys.executable, __file__, None, 1)
+          exit(0)
+      # main()
+  
+  # python2.7，使用u"runas", unicode(sys.executable), unicode(__file__)
+      
+  # 以管理员身份运行其它程序
+  ctypes.windll.shell32.ShellExecuteW(None, "runas", "notepad", "1.txt", None, 0)
+  ```
+
+* pass
+
 
 
 ### 定义和获取命令行参数
@@ -67,6 +98,13 @@
       pass
   
   ```
+
+### 以管理员身份运行程序
+
+```python
+import os,sys,ctypes
+
+```
 
 
 
