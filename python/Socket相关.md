@@ -64,5 +64,76 @@ httpd = ThreadingHTTPServer(('localhost', 8080), MyCGIHandler)
 httpd = ThreadingHTTPServer(('localhost', 8080), SimpleHTTPRequestHandler)
 ```
 
+## WebSocket Server 示例
 
+```python
+# 使用系统 asyncio 异步并发模型， 第三方websockets组件, 最低支持 Python3.4 (XP)
+# 3.6+ 可使用 async, await 关键字
+
+import asyncio
+import websockets
+
+# WebServer Handler, 新的连接
+@asyncio.coroutine
+def hello(websocket, path):
+    name = yield from websocket.recv()
+    print("< {}".format(name))
+
+    greeting = "Hello {}!".format(name)
+    yield from websocket.send(greeting)
+    print("> {}".format(greeting))
+
+
+start_server = websockets.serve(hello, 'localhost', 8765)
+loop = asyncio.get_event_loop()
+loop.run_until_complete(start_server)
+loop.run_forever()
+```
+
+## WebSocket Client 示例
+
+```python
+import asyncio
+import websockets
+
+@asyncio.coroutine
+def on_open(ws):
+    print('opened')
+    # request = "{'event':'addChannel','channel':'ok_sub_spot_bch_btc_ticker'}"
+    request = "{'event':'ping'}"
+    yield from ws.send(request)
+    print("> %s" % request)
+
+
+@asyncio.coroutine
+def on_close(ws):
+    print('closed')
+
+
+@asyncio.coroutine
+def on_message(ws, msg):
+    print('msg', msg)
+
+
+@asyncio.coroutine
+def client_main():
+    # url = 'wss://real.okex.com:10441/websocket'
+    client = yield from websockets.connect(url)
+    if client.open:
+        try:
+            yield from on_open(client)
+            while True:
+                msg = yield from client.recv()
+                yield from on_message(client, msg)
+        except websockets.ConnectionClosed:
+            pass
+        finally:
+            yield from on_close(client)
+            if not client.closed:
+                yield from client.close()
+
+
+loop = asyncio.get_event_loop()
+loop.run_until_complete(client_main())
+```
 
