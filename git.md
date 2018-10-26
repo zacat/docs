@@ -173,6 +173,26 @@ git push -f origin master
 
 
 
+## 多个仓库地址
+
+```bash
+# github 很慢,可先使用图内仓库进行日常推送, 再同步到github
+
+git remote # 查看所有仓库
+git remote xxx # 查看指定仓库
+
+# 修改仓库地址
+git remote set-url origin http://github.com/ijiabao/test.git
+
+# 删除远程仓库
+git remote rm origin
+# 添加远程仓库
+git remote add origin https://github.com/ijiabao/test.git
+
+```
+
+
+
 ## 与SVN相比
 
 ```bash
