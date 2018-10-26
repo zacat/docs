@@ -246,6 +246,27 @@ class DbDumpCommand extends Command{
 
 
 
+## 数据模型
+
+* 关联速记
+
+  ```php
+  # 以下是默认值,方便修改非默认值时做参考
+  
+  # 用户表User, 资料表UserInfo, 一对一, 默认值如下:
+  User::hasOne(UserInfo::class, "user_id", "id");
+  
+  # 用户表User, 角色表Role, 一对多
+  User::hasMany(Role::class, "user_id", "id");
+  
+  # 栏目 对 文章, 一对多
+  Category::hasMany(Article::class, "category_id", "id")
+      
+  # belongsTo 文章表 对 栏目表 
+  Article::belongsTo(Category::class, "category_id", "id");
+  ```
+
+
 ```js
 
 
