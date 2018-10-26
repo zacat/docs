@@ -288,6 +288,17 @@ txt = re.sub(regex, lambda mat: repl_x(some_arg, mat), txt)
 
 
 
+## shell/子程序
+
+```python
+os.system("cmd")
+
+# 获取子程序的输出
+output = os.popen('dir/w')
+info = output.read()
+
+```
+
 
 
 
