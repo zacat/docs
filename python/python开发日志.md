@@ -4,6 +4,44 @@
 
 
 
+## 安装
+
+* Linux需另装模块和工具, pip, wheel, setuptools
+
+  ```bash
+  # UBUNTU 示例
+  sudo apt install python3-pip python3-wheel python3-setuptools
+  ```
+
+* 更新插件
+
+  ```bash
+  python3 -m pip install --upgrade pip,wheel,setuptools
+  ```
+
+* ubuntu pip3 升级后有BUG:
+
+  ```
+  from pip import main
+  
+  ImportError: cannot import name main
+  ```
+
+  修改 /usr/bin/pip3
+
+  ```python
+  sys.exit(main())
+  ```
+
+  改为
+
+  ```python
+  sys.exit(__main__._main())
+  ```
+
+* 
+
+
 ### Sublime Text 编辑器插件
 
 * FileHeader 新文件模板,自动添加头
